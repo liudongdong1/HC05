@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -87,10 +88,10 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ble);
         /*todo 这里需要改为具体的蓝牙地址信息*/
+        b = getIntent().getExtras();
         mDeviceName = b.getString(EXTRAS_DEVICE_NAME);
         mDeviceAddress = b.getString(EXTRAS_DEVICE_ADDRESS);
         mRssi = b.getString(EXTRAS_DEVICE_RSSI);
-
         /* 启动蓝牙service */
         Intent gattServiceIntent = new Intent(this, BluetoothService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -102,6 +103,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
         super.onDestroy();
         //解除广播接收器
         unregisterReceiver(mGattUpdateReceiver);
+        unbindService(mServiceConnection);
         mBluetoothService = null;
     }
 
@@ -111,6 +113,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
     protected void onResume()
     {
         super.onResume();
+        Log.d(TAG, "onResume(),Connect request result=" );
         //绑定广播接收器
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothService != null)
@@ -135,8 +138,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
         send_btn = (Button) this.findViewById(R.id.send_btn);
         send_et = (EditText) this.findViewById(R.id.send_et);
         connect_state.setText(status);
-        send_btn.setOnClickListener(this);
-
+        //send_btn.setOnClickListener(this);
     }
 
     /* BluetoothService绑定的回调函数 */
@@ -158,7 +160,9 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
             // Automatically connects to the device upon successful start-up
             // initialization.
             // 根据蓝牙地址，连接设备
-            mBluetoothService.connect(mDeviceAddress);
+            Log.i(TAG,"ServiceConnection, on ServiceConnected");
+            Boolean flag= mBluetoothService.connect(mDeviceAddress);
+            Log.i(TAG,"ServiceConnection,  mBluetoothService connection ok"+flag.toString());  //这里连接成功
 
         }
 
@@ -180,13 +184,14 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
         public void onReceive(Context context, Intent intent)
         {
             final String action = intent.getAction();
+            Log.i(TAG,"BroadcastReceiver, mGattUpdateReceiver get data"+action.toString());
             if (BluetoothService.ACTION_GATT_CONNECTED.equals(action))//Gatt连接成功
             {
                 mConnected = true;
                 status = "connected";
                 //更新连接状态
                 updateConnectionState(status);
-                System.out.println("BroadcastReceiver :" + "device connected");
+                Log.i(TAG,"BroadcastReceiver :" + "device connected");
 
             } else if (BluetoothService.ACTION_GATT_DISCONNECTED//Gatt连接失败
                     .equals(action))
@@ -195,7 +200,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
                 status = "disconnected";
                 //更新连接状态
                 updateConnectionState(status);
-                System.out.println("BroadcastReceiver :"
+                Log.i(TAG,"BroadcastReceiver :"
                         + "device disconnected");
 
             } else if (BluetoothService.ACTION_GATT_SERVICES_DISCOVERED//发现GATT服务器
@@ -205,14 +210,14 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
                 // user interface.
                 //获取设备的所有蓝牙服务
                 displayGattServices(mBluetoothService.getSupportedGattServices());
-                System.out.println("BroadcastReceiver :"
+                Log.i(TAG,"BroadcastReceiver :"
                         + "device SERVICES_DISCOVERED");
             } else if (BluetoothService.ACTION_DATA_AVAILABLE.equals(action))//有效数据
             {
                 //处理发送过来的数据
                 displayData(intent.getExtras().getString(
                         BluetoothService.EXTRA_DATA));
-                System.out.println("BroadcastReceiver onData:"
+                Log.i(TAG,"BroadcastReceiver onData:"
                         + intent.getStringExtra(BluetoothService.EXTRA_DATA));
             }
         }
@@ -228,7 +233,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
         msg.setData(b);
         //将连接状态更新的UI的textview上
         myHandler.sendMessage(msg);
-        System.out.println("connect_state:" + status);
+        Log.i(TAG,"connect_state:" + status);
 
     }
 
@@ -261,7 +266,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
             {
                 rev_tv.setText(rev_str);
                 rev_sv.scrollTo(0, rev_tv.getMeasuredHeight());
-                System.out.println("rev:" + rev_str);
+                Log.i(TAG,"rev:" + rev_str);
             }
         });
 
@@ -270,7 +275,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
     /**
      * @Title: displayGattServices
      * @Description: TODO(处理蓝牙服务)
-     * @param 无
+     * @param
      * @return void
      * @throws
      */
@@ -305,7 +310,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
 
             gattServiceData.add(currentServiceData);
 
-            System.out.println("Service uuid:" + uuid);
+            Log.i(TAG,"Service uuid:" + uuid);
 
             ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<HashMap<String, String>>();
 
@@ -351,7 +356,7 @@ public class BleActivity extends AppCompatActivity implements View.OnClickListen
                         .getDescriptors();
                 for (BluetoothGattDescriptor descriptor : descriptors)
                 {
-                    System.out.println("---descriptor UUID:"
+                    Log.i(TAG,"---descriptor UUID:"
                             + descriptor.getUuid());
                     // 获取特征值的描述
                     mBluetoothService.getCharacteristicDescriptor(descriptor);

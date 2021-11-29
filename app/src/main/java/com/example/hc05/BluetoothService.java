@@ -78,6 +78,7 @@ public class BluetoothService extends Service {
                                             int newState)
         {
             String intentAction;
+            Log.i(TAG,"BluetoothGattCallback,"+gatt.toString()+"\t"+status+"\t"+newState);
             if (newState == BluetoothProfile.STATE_CONNECTED)//连接成功
             {
                 intentAction = ACTION_GATT_CONNECTED;
@@ -111,7 +112,7 @@ public class BluetoothService extends Service {
             } else
             {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
-                System.out.println("onServicesDiscovered received: " + status);
+                Log.i(TAG,"onServicesDiscovered received: " + status);
             }
         }
         /*
@@ -141,7 +142,7 @@ public class BluetoothService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic)
         {
-            System.out.println("++++++++++++++++");
+            Log.i(TAG,"++++++++++++++++");
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
 
         }
@@ -229,6 +230,7 @@ public class BluetoothService extends Service {
         final Intent intent = new Intent(action);
         //从特征值获取数据
         final byte[] data = characteristic.getValue();
+        Log.i(TAG,"BroadcastUpdata,广播远程发送过来的数据"+data.toString());
         if (data != null && data.length > 0)
         {
             final StringBuilder stringBuilder = new StringBuilder(data.length);
@@ -240,7 +242,7 @@ public class BluetoothService extends Service {
 
             }
             intent.putExtra(EXTRA_DATA, new String(data));
-            System.out.println("broadcastUpdate for  read data:"
+            Log.i(TAG,"broadcastUpdate for  read data:"
                     + new String(data));
         }
         sendBroadcast(intent);
@@ -321,8 +323,7 @@ public class BluetoothService extends Service {
     {
         if (mBluetoothAdapter == null || address == null)
         {
-            Log.w(TAG,
-                    "BluetoothAdapter not initialized or unspecified address.");
+            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
             return false;
         }
 
@@ -350,11 +351,12 @@ public class BluetoothService extends Service {
         // autoConnect
         // parameter to false.
         /* 调用device中的connectGatt连接到远程设备 */
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+        Log.i(TAG,"Try to connect Gatt");
+        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);// todo  这里回调显示是连接失败
         Log.d(TAG, "Trying to create a new connection.");
         mBluetoothDeviceAddress = address;
         mConnectionState = STATE_CONNECTING;
-        System.out.println("device.getBondState==" + device.getBondState());
+        Log.i(TAG,"device.getBondState==" + device.getBondState());
         return true;
     }
 
@@ -371,7 +373,7 @@ public class BluetoothService extends Service {
     /**
      * @Title: disconnect
      * @Description: TODO(ȡ����������)
-     * @param   无
+     * @param
      * @return void
      * @throws
      */
