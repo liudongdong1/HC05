@@ -1,10 +1,9 @@
-package com.example.hc05;
+package com.example.hc05.activitytest;
 
 import java.util.ArrayList;
 import java.util.Set;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -17,7 +16,6 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +24,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,11 +31,9 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import static android.bluetooth.BluetoothProfile.STATE_CONNECTED;
+import com.example.hc05.R;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener{
-
-
     // 扫描蓝牙按钮
     private Button scan_btn;
     // 蓝牙适配器
@@ -169,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         return manager.getAdapter() != null;
     }
     //是否开启
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public static boolean isBleEnable(Context context) {
         if (!isSupportBle(context)) {
             return false;

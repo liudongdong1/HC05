@@ -1,4 +1,4 @@
-package com.example.hc05;
+package com.example.hc05.activitytest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

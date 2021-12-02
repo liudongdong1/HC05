@@ -1,4 +1,4 @@
-package com.example.hc05;
+package com.example.hc05.activitytest;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,8 +22,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
-import android.widget.TableLayout;
 import android.widget.TextView;
+
+import com.example.hc05.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
