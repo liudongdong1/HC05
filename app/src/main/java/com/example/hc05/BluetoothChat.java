@@ -26,12 +26,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hc05.bluetooth.BluetoothChatService;
-import com.example.hc05.bluetooth.Data_syn;
+import com.example.hc05.datamodel.FlexData;
+import com.example.hc05.datamodel.FlexWindow;
+import com.example.hc05.tools.HexString;
+import com.example.hc05.tools.RandomFlex;
+import com.example.hc05.tools.RecognizeTorch;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 
 /**
  * 显示通信信息的主Activity。
@@ -110,6 +115,7 @@ public class BluetoothChat extends Activity {
 
         //布局控件初始化函数，注册相关监听器
         initListerner();
+
 
         // 获取本地蓝牙适配器
         initBlueToothAdapter();
@@ -313,7 +319,7 @@ public class BluetoothChat extends Activity {
         if (message.length() > 0) {
             // 获取 字符串并告诉BluetoothChatService发送
             if (outhex == true) {
-                byte[] send = Data_syn.hexStr2Bytes(message);
+                byte[] send = HexString.hexStr2Bytes(message);
                 mChatService.write(send);//回调service
 
             } else if (outhex == false) {
@@ -374,7 +380,7 @@ public class BluetoothChat extends Activity {
                     }
                     // 发送计数
                     if (outhex == true) {
-                        String writeMessage = Data_syn.Bytes2HexString(writeBuf);
+                        String writeMessage = HexString.Bytes2HexString(writeBuf);
                         countout += writeMessage.length() / 2;
                         outcount.setText("" + countout);
                     } else if (outhex == false) {
@@ -391,20 +397,18 @@ public class BluetoothChat extends Activity {
                 case MESSAGE_READ:
 
                     byte[] readBuf = (byte[]) msg.obj;
-                    try {
-                        String writeMessage = new String(readBuf, 0, msg.arg1, "GBK");
-                        Log.i(TAG,"蓝牙读取的数据GBK:"+readBuf);
-                        writeMessage=" " + Data_syn.bytesToHexString(readBuf, msg.arg1);
-                        Log.i(TAG,"蓝牙读取的数据:"+readBuf);
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
+                    StringBuilder stringBuilder=new StringBuilder();
+                    for(byte temp : readBuf){
+                        stringBuilder.append(temp);
                     }
+                    Log.i(TAG,"蓝牙读取的数据:"+stringBuilder.toString());
+
 
                     //检错误码计算函数
 
                     if (inhex == true) {
                         String readMessage = " "
-                                + Data_syn.bytesToHexString(readBuf, msg.arg1);
+                                + HexString.bytesToHexString(readBuf, msg.arg1);
                         fmsg += readMessage;
                         mConversationView.append(readMessage);
                         // 接收计数，更显UI
