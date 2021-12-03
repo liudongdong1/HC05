@@ -1,5 +1,8 @@
 package com.example.hc05.tools;
+import com.example.hc05.datamodel.FlexData;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 /**
  * @author liudongdong
@@ -18,6 +21,9 @@ public class RandomFlex {
         return RandomFlex.Inner.instance;
     }
 
+    public FlexData getFlexData(){
+        return new FlexData(getFlexFakeData(),new Date());
+    }
     public ArrayList<Double> getFlexFakeData(){
         ArrayList<Double>temp=new ArrayList<Double>();
         for(int i=0;i<5;i++){

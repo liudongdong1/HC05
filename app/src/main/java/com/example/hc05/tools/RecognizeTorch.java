@@ -76,12 +76,12 @@ public class RecognizeTorch {
         }*/
         int[] Index = new int[scores.length];
         Index = ArrayHelper.Arraysort(scores);
-
-        for (int i = 0; i < 10; i++) {
-            System.out.println(Index[i] + "：" + scores[i]);
+        StringBuilder stringBuilder=new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            stringBuilder.append(Constant.Gesture_CHAR_CLASSES[Index[0]] + "：" + scores[i]+";");
         }
-        String classname = Constant.Gesture_CHAR_CLASSES[Index[0]];
-        return classname;
+        //String classname = Constant.Gesture_CHAR_CLASSES[Index[0]];
+        return stringBuilder.toString();
     }
 
 

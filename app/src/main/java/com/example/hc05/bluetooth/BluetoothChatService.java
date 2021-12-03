@@ -32,7 +32,7 @@ public class BluetoothChatService {
     // 创建服务器套接字时SDP记录的名称
     private static final String NAME = "BluetoothChat";
     // 该应用的唯一UUID
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); //00001101-0000-1000-8000-00805F9B34FB
     // 成员变量
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;

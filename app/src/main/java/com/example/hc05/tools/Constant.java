@@ -3,9 +3,9 @@ package com.example.hc05.tools;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 public class Constant {
-    public static final int Flex_WINDOW_SIZE = 100;
+    public static final int Flex_WINDOW_SIZE = 60;
     public static final int FLEX_FAKE_VALUE=180;
-    public static final int AVERAGE_WINDOW_SIZE=2;
+    public static final int AVERAGE_WINDOW_SIZE=20;
     public static final String MODEL_PATH="modeltoandroidchar_jit.pt";
 
     public static final String DB_PATH = "/data/com.example.hc05/databases/flexDb.sqlite3/";

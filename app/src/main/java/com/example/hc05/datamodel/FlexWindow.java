@@ -1,6 +1,8 @@
 package com.example.hc05.datamodel;
 
 import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.RequiresApi;
 import com.example.hc05.tools.Constant;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
@@ -35,7 +37,7 @@ public class FlexWindow {
     /**
      * @function： 添加flexdata数据到显示操作窗口
      * */
-    public void addFlexData(FlexData flexData){
+    public synchronized void addFlexData(FlexData flexData){
         winFlexData.offer(flexData);
     }
     //todo 这里需要测试一下这个输出是否正确，顺序是否有问题
@@ -43,7 +45,7 @@ public class FlexWindow {
      * @function: 获取 窗口Flexdata数值
      * */
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public List<FlexData> getFlexData(){
+    public synchronized List<FlexData> getFlexData(){
         List<FlexData> result = winFlexData.stream().collect(Collectors.toList());   //查看源代码是按照插入的顺序进行访问的  测试通过，还是保持之前的结构
         //Collections.reverse(result);
         return result;
@@ -57,14 +59,15 @@ public class FlexWindow {
         this.gestureName = gestureName;
     }
 
-    public void clearData(){
+    public synchronized void clearData(){
         gestureName="None";
         winFlexData.clear();
     }
     public int getSize(){
         return winFlexData.size();
     }
-    public FlexData getSingleFlexData(int i){
+    public synchronized FlexData getSingleFlexData(int i){
+        Log.i("FlexWindow","getSingleFlexData:index="+i+"\t size="+winFlexData.size());
         return winFlexData.get(i);
     }
 }

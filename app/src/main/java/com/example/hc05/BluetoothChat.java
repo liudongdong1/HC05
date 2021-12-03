@@ -26,11 +26,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hc05.bluetooth.BluetoothChatService;
-import com.example.hc05.datamodel.FlexData;
-import com.example.hc05.datamodel.FlexWindow;
+
 import com.example.hc05.tools.HexString;
-import com.example.hc05.tools.RandomFlex;
-import com.example.hc05.tools.RecognizeTorch;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
