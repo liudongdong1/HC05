@@ -96,4 +96,9 @@
     <string name="login">登录</string>
     <string name="pw_register">注册密钥</string>
     <string name="关于">关于</string>
+    <string name="Recognize">Recognize</string>
+    <string name="Clear">Clear</string>
+    <string name="Save">Save</string>
+    <string name="top5">识别结果Top5：</string>
+    <string name="RecieveText">接收数:</string>
 </resources>

@@ -40,4 +40,5 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation 'org.pytorch:pytorch_android_lite:1.9.0'
     implementation 'org.pytorch:pytorch_android_torchvision:1.9.0'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 }
