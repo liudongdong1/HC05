@@ -52,7 +52,7 @@
         android:background="@drawable/sou"
         android:weightSum="1">
 
-        <TextView
+        <!--<TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -67,23 +67,23 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:background="@drawable/sou"
-            android:textColor="#000000" />
+            android:textColor="#000000" />-->
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="9dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:text="@string/top5"
             android:textColor="#A5BFD6"
             android:textSize="15sp" />
 
         <TextView
             android:id="@+id/outcount"
-            android:layout_width="122dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="8dp"
             android:background="@drawable/sou"
+            android:gravity="center"
+            android:text="A:0.98;B:0.93;B:0.93;B:0.93;B:0.93;"
             android:textColor="#000000" />
     </LinearLayout>
 

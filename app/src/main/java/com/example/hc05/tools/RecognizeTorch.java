@@ -60,6 +60,11 @@ public class RecognizeTorch {
         System.out.println(input_tensor.toString());
         return getRecognizeReuslt(input_tensor);
     }
+    /**
+     * @funtion: 使用 pytorch ai模型进行手势行为识别
+     * @Parameter inputTensor:  模型输入数据，5*5
+     * @return 返回top5 识别结果，class：percentage（保留俩位小数）
+     * */
     public String getRecognizeReuslt(Tensor inputTensor){
         final Tensor outputTensor = module.forward(IValue.from(inputTensor)).toTensor();
         // getting tensor content as java array of floats
@@ -78,13 +83,11 @@ public class RecognizeTorch {
         Index = ArrayHelper.Arraysort(scores);
         StringBuilder stringBuilder=new StringBuilder();
         for (int i = 0; i < 5; i++) {
-            stringBuilder.append(Constant.Gesture_CHAR_CLASSES[Index[0]] + "：" + scores[i]+";");
+            stringBuilder.append(Constant.Gesture_CHAR_CLASSES[Index[i]] + "：" + String.format("%.2f", scores[i]).toString()+";");
         }
         //String classname = Constant.Gesture_CHAR_CLASSES[Index[0]];
         return stringBuilder.toString();
     }
-
-
     /**
      * Copies specified asset to the file in /files app directory and returns this file absolute path.
      * @return absolute file path

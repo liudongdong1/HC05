@@ -56,7 +56,6 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
     //android 按键布局视图
     private Button searchButton;
     private Button discoverButton;
-    private TextView countText;
     private TextView recognizeResult;
     private TextView receiveMessage;
     private Button clearButton;
@@ -187,7 +186,6 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         searchButton.setOnClickListener(new MyClickListener());
         discoverButton=findViewById(R.id.discoverable1);
         discoverButton.setOnClickListener(new MyClickListener());
-        countText=findViewById(R.id.incount);
         recognizeResult=findViewById(R.id.outcount);
         receiveMessage=findViewById(R.id.recieve_message);
         clearButton=findViewById(R.id.button3);
@@ -309,7 +307,6 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         fmsg = "";   // 接受的文本的文本数据
         receiveMessage.setText(null);
         recognizeResult.setText("None");
-        countText.setText("0");
         flexWindow.clearData();
     }
     /**
@@ -359,7 +356,6 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         Log.i(TAG, "setupChat()");
         receiveMessage.setMovementMethod(ScrollingMovementMethod
                 .getInstance());// 使TextView接收区可以滚动
-        countText.setText("0");
         recognizeResult.setText("None");
         // 初始化BluetoothChatService以执行app_incon_bluetooth连接
         mChatService = new BluetoothChatService(this, mHandler);
