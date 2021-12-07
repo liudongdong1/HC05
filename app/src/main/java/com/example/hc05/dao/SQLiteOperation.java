@@ -37,6 +37,7 @@ public class SQLiteOperation {
     public Boolean add(FlexData flexData){
         SQLiteDatabase database=sqLiteHelper.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
+        contentValues.put("label",flexData.getLabel());
         contentValues.put("flexdata",flexData.getStringFlexData());
         contentValues.put("timestamp",flexData.getTimestamp());
         return database.insert("table_flex",null,contentValues)>0?true:false;
@@ -50,6 +51,7 @@ public class SQLiteOperation {
         try{
             ContentValues contentValues=new ContentValues();
             for(FlexData flexData: flexDataArrayList){
+                contentValues.put("label",flexData.getLabel());
                 contentValues.put("flexdata",flexData.getStringFlexData());
                 contentValues.put("timestamp",flexData.getTimestamp());
                 database.insert("table_flex",null,contentValues);
@@ -66,9 +68,9 @@ public class SQLiteOperation {
     public ArrayList<FlexData> queryAll(){
         SQLiteDatabase sqLiteDatabase=sqLiteHelper.getReadableDatabase();
         ArrayList<FlexData> flexDataArrayList=new ArrayList<FlexData>();
-        Cursor cursor=sqLiteDatabase.query("table_flex",new String[]{"flexdata","timestamp"},null,null,null,null,null);
+        Cursor cursor=sqLiteDatabase.query("table_flex",new String[]{"label","flexdata","timestamp"},null,null,null,null,null);
         while(cursor.moveToNext()){
-            @SuppressLint("Range") FlexData flexData=new FlexData(cursor.getString(cursor.getColumnIndex("flexdata")),cursor.getString(cursor.getColumnIndex("timestamp")));
+            @SuppressLint("Range") FlexData flexData=new FlexData(cursor.getString(cursor.getColumnIndex("flexdata")),cursor.getString(cursor.getColumnIndex("timestamp")),cursor.getString(cursor.getColumnIndex("label")));
             flexDataArrayList.add(flexData);
         }
         Log.i(Tag,"queryAll: 操作成功，获取数据大小="+flexDataArrayList.size());

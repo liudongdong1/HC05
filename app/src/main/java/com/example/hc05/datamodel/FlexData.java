@@ -10,33 +10,49 @@ import java.util.Date;
 public class FlexData {
     private ArrayList<Double> flexdata;   //存储弯曲传感器数据值
     private String timestamp;          // 存储对应的时间戳  String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Timestamp());
+    private String label;
     public FlexData(){
     }
+
     public FlexData(ArrayList<Double>_flexdata,String _timestamp){
         flexdata=new ArrayList<Double>();
         for(Double data : _flexdata){
             flexdata.add(data);
         }
         timestamp=_timestamp;
+        label="NULL";
     }
     public FlexData(String flexstring,String _timestamp){
         flexdata=new ArrayList<Double>();
         timestamp=_timestamp;
-        String[] list=flexstring.split(";");   // todo  这里需要进行测试是否有问题  测试通过
+        String[] list=flexstring.split(";");
         for(String temp: list){
             flexdata.add(Double.valueOf(temp));
         }
+        label="NULL";
     }
-    public FlexData(String flexstring,Date date){
+    public FlexData(String flexstring,String _timestamp,String description){
+        flexdata=new ArrayList<Double>();
+        timestamp=_timestamp;
+        String[] list=flexstring.split(";");
+        for(String temp: list){
+            flexdata.add(Double.valueOf(temp));
+        }
+        label=description;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public FlexData(String flexstring, Date date){
         flexdata=new ArrayList<Double>();
         timestamp=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(date.getTime());
-        String[] list=flexstring.split(";");   // todo  这里需要进行测试是否有问题   测试通过
-        //Log.i("FlexData","FlexData:"+list.toString()+"大小："+list.length);
-        //System.out.println("FlexData:"+list.toString()+"大小："+list.length);
+        String[] list=flexstring.split(";");
         for(String temp: list){
-            //System.out.println(temp);
             flexdata.add(Double.valueOf(temp));
         }
+        label="NULL";
     }
     public FlexData(ArrayList<Double> _flexdata, Date date){
         flexdata=new ArrayList<Double>();
@@ -44,6 +60,15 @@ public class FlexData {
             flexdata.add(data);
         }
         timestamp=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(date.getTime());
+        label="NULL";
+    }
+    public FlexData(ArrayList<Double> _flexdata, Date date,String description){
+        flexdata=new ArrayList<Double>();
+        for(Double data : _flexdata){
+            flexdata.add(data);
+        }
+        timestamp=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(date.getTime());
+        label=description;
     }
     public ArrayList<Double> getFlexData(){
         return flexdata;
@@ -62,11 +87,13 @@ public class FlexData {
         }
         return stringBuilder.toString();
     }
+
     @Override
     public String toString() {
         return "FlexData{" +
-                "flexdata=" + getStringFlexData() +
+                "flexdata=" + flexdata +
                 ", timestamp='" + timestamp + '\'' +
+                ", label='" + label + '\'' +
                 '}';
     }
 }
