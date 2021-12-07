@@ -18,10 +18,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-
+/**
+ * @author liudongdong
+ * @Date 2021.12.4
+ * @function: 通过Pytorch mobile 模型识别手势行为
+ * */
 public class RecognizeTorch {
     private Module module=null;
-
     private RecognizeTorch(){
     }
     private static class Inner {

@@ -33,6 +33,7 @@ import com.example.hc05.datamodel.FlexData;
 import com.example.hc05.datamodel.FlexWindow;
 import com.example.hc05.tools.HexString;
 import com.example.hc05.tools.MovingAverages;
+import com.example.hc05.tools.PolynomialCurveHandle;
 import com.example.hc05.tools.RandomFlex;
 import com.example.hc05.tools.RecognizeTorch;
 import com.github.mikephil.charting.charts.LineChart;
@@ -61,6 +62,8 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
     private Button clearButton;
     private Button recognizeButton;
     private Button saveButton;
+    private Button startValidationButton;
+    private Button validationButton;
     private LineChart lineChart;
     private CheckBox checkBoxIn16;
     private CheckBox checkBoxOut16;
@@ -83,35 +86,39 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
     // Intent请求代码
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
-    // 用来保存存储的文件名
-    public String filename = "";
-    // 保存用数据缓存
-    private String fmsg = "";
-    // 计数用
-    private int countin = 0;
-    private int countout = 0;
 
     // 已连接设备的名称
     private String mConnectedDeviceName = null;
-    // 输出流缓冲区
-    private StringBuffer mOutStringBuffer;
     //弯曲传感器窗口数据
     private FlexWindow flexWindow=FlexWindow.getSingleton();
     //手势识别模块
     RecognizeTorch recognizeTorch=RecognizeTorch.getSingleton();
-
     // 本地蓝牙适配器
     private BluetoothAdapter mBluetoothAdapter = null;
     // 用于通信的服务
     private BluetoothChatService mChatService = null;
     // CheckBox用
     private boolean inhex = true;
-    private boolean outhex = true;
-    private boolean auto = false;
+    private int indexA;
+    private int indexN;
+
+    private FlexData flexData;   //用于接受蓝牙数据临时构造的 FlexData 数据item
+    private String fmsg;  //用于接受蓝牙数据, 用于保存临时截断数据
+    private String flex_string; //用于接受蓝牙数据临时传感器数据
+    private StringBuffer stringBuffer;
     private Thread thread;  //用于模拟图标数据
+    private Boolean appendString=false;
     private ArrayList<MovingAverages> averages;
+
+    private ArrayList<ArrayList<Double>> arrayListsFlexValidate=new ArrayList<ArrayList<Double>>();   //用于保存初始矫正时候弯曲传感数据
+    private double[] flexparam=new double[5*3];   //用于保存量化控制弯曲传感器 二项式系数参数格式如： a,b,c; a,b,c;...
+    private Integer validateState=0; //0: 不进行任何处理， 1： 矫正采集数据， 2： 进行矫正处理
+
     
     private SQLiteOperation sqLiteOperation=SQLiteOperation.getSingleton();
+    /**
+     * @function： 初始化五个滑动平均类，用于平滑弯曲传感器数据
+     * */
     private void initializeFilter(){
         averages=new ArrayList<MovingAverages>();
         for(int i=0;i<5;i++){
@@ -134,27 +141,25 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         // 获取本地蓝牙适配器
         initBlueToothAdapter();
         //初始化chart
-        initializeChart();
+        initializeChart(false);
         try {
             recognizeTorch.initializeModel(sqlitetest.this);
         } catch (IOException e) {
             e.printStackTrace();
-            Log.e("PytorchHelloWorld", "Error reading assets", e);
+            Log.e(TAG, "Error reading assets", e);
             finish();
         }
         initializeFilter();
         sqLiteOperation.initSQLiteHepler(this);
     }
     /**
-     * @function:
+     * @function:如果BT未打开，请求启用。  mChatService 是否可用操作
      * */
     @Override
     public void onStart() {
         super.onStart();
         if (D)
             Log.e(TAG, "++ ON START ++");
-        //如果BT未打开，请求启用。
-        // 然后在onActivityResult期间调用setupChat（）
         if (!mBluetoothAdapter.isEnabled())
         {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -174,7 +179,15 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
             }
         }
     }
-
+    /**
+     * @function: 初始化 记录矫正数据的数组
+     * */
+    public void initFlexValidationData(){
+        arrayListsFlexValidate.clear();
+        for(int i=0;i<5;i++){
+            arrayListsFlexValidate.add(new ArrayList<Double>());
+        }
+    }
     /**
      * @function: 初始化android xml 相关控件，并注册相应的监听函数
      * */
@@ -198,6 +211,10 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         checkBoxIn16=findViewById(R.id.in16);
         checkBoxIn16.setOnCheckedChangeListener(listener);
         checkBoxOut16=findViewById(R.id.out16);
+        startValidationButton=findViewById(R.id.startValid);
+        startValidationButton.setOnClickListener(new MyClickListener());
+        validationButton=findViewById(R.id.Validation);
+        validationButton.setOnClickListener(new MyClickListener());
     }
     /**
      * @function: checkbox 监听函数，用于设置是二、十六进制显示
@@ -245,16 +262,40 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
                     break;
                 case R.id.button4:
                     Log.i(TAG,"you click the button4 to recognize the gesture");
-                    performRecognize();
+                    if(validateState==3){
+                        performRecognize();
+                    }
                     break;
                 case R.id.button5:
                     Log.i(TAG,"you click the button5 to save data");
                     performSave();
                     //Toast.makeText(MainActivity.this, "This is Button 111", Toast.LENGTH_SHORT).show();
                     break;
+                case R.id.startValid:
+                    initFlexValidationData();
+                    validateState=1;
+                    //startValidCollection();
+                    Log.i(TAG,"you click the button5 to startValidCollection");
+                    break;
+                case R.id.Validation:
+                    validateState=2;
+                    Log.i(TAG,"you click the button5 to performValidation");
+                    break;
                 default:
                     break;
             }
+        }
+    }
+    /**
+     * 执行弯曲数据二项式拟合函数操作
+     * */
+    public void performValidation(){
+        for(int i=0;i<arrayListsFlexValidate.size();i++){
+            ArrayList<Double>temp=arrayListsFlexValidate.get(i);
+            double[] para= PolynomialCurveHandle.getParameters(temp);
+            flexparam[i*3]=para[2];
+            flexparam[i*3+1]=para[1];
+            flexparam[i*3+2]=para[0];
         }
     }
     /**
@@ -267,7 +308,7 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
             public void run() {
                 ArrayList<FlexData> flexDataArrayList= (ArrayList<FlexData>) flexWindow.getFlexData();
                 sqLiteOperation.addBatch(flexDataArrayList);
-                Log.i(TAG,"addFlexData_test: OK");
+                Log.i(TAG,"performSave operation: OK");
             }
         }).start();
     }
@@ -280,15 +321,10 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
             public void run() {
                 // TODO Auto-generated method stub
                 recognizeResult.setText(recognizeGesture());
+                Log.i(TAG,"performSave operation: OK");
             }
 
         });
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                recognizeResult.setText(recognizeGesture());
-            }
-        }).start();*/
     }
     /**
      * @function: 调用pytorch ai 模型，并返回识别结果
@@ -303,11 +339,15 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
      * @function: 清空文本计数，识别结果和flexWindow 窗口数据
      * */
     public void clearButtonHandler() {
-        countin = 0;
         fmsg = "";   // 接受的文本的文本数据
         receiveMessage.setText(null);
         recognizeResult.setText("None");
         flexWindow.clearData();
+        //lineChart.getLineData().clearValues();
+        //clearEntry();
+        lineChart.clear();
+        initializeChart(false);
+        validateState=0;
     }
     /**
      * @function: 返回该DeviceListActivity回调函数,并通过setupChat()进入蓝牙数据传输处理
@@ -351,7 +391,6 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
     /**
      * @function: 进入蓝牙数据传输处理，通过handler进行数据的交互
      * */
-    //初始化
     private void setupChat() {
         Log.i(TAG, "setupChat()");
         receiveMessage.setMovementMethod(ScrollingMovementMethod
@@ -360,6 +399,9 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         // 初始化BluetoothChatService以执行app_incon_bluetooth连接
         mChatService = new BluetoothChatService(this, mHandler);
     }
+    /**
+     * @function： 分别对数据每个元素使用filter处理，并返回 处理后数组列表
+     * */
     private ArrayList<Double> getFilterData(ArrayList<Double>arrayList){
         ArrayList<Double>arrayList1=new ArrayList<>();
         for(int i=0;i<5;i++){
@@ -394,41 +436,47 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
                     }
                     break;
                 case MESSAGE_READ:
-                    /*todo 测试片段代码*/
                     byte[] readBuf = (byte[]) msg.obj;
-                    StringBuilder stringBuilder=new StringBuilder();
-                    for(byte temp : readBuf){
-                        stringBuilder.append(temp);
-                    }
-                    Log.i(TAG,"蓝牙读取的数据:"+stringBuilder.toString());
-
-                    ArrayList<Double> arrayList=RandomFlex.getSingleton().getFlexFakeData();
-                    arrayList=getFilterData(arrayList);
-                    flexWindow.addFlexData(new FlexData(arrayList,new Date()));
-                    addEntry(arrayList);
-
-                    //检错误码计算函数
-                    /*if (inhex == true) {
-                        String readMessage = " "
-                                + HexString.bytesToHexString(readBuf, msg.arg1);
-                        fmsg += readMessage;
-                        receiveMessage.append(readMessage);
-                        // 接收计数，更显UI
-                        countin += readMessage.length() / 2;
-                        countText.setText("" + countin);
-                    } else if (inhex == false) {
-                        String readMessage = null;
-                        try {
-                            readMessage = new String(readBuf, 0, msg.arg1, "GBK");
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
+                    try {
+                        if(appendString){
+                            flex_string=flex_string+new String(readBuf, 0, msg.arg1, "GBK").toString();
+                        }else{
+                            flex_string=new String(readBuf, 0, msg.arg1, "GBK").toString();
                         }
-                        fmsg += readMessage;
-                        receiveMessage.append(readMessage);
-                        // 接收计数，更新UI
-                        countin += readMessage.length();
-                        countText.setText("" + countin);
-                    }*/
+                        //Log.i(TAG,"大小为:"+flex_string.length()+"蓝牙读取的数据字符串："+flex_string);
+                        indexA=flex_string.indexOf("A");
+                        indexN=flex_string.lastIndexOf("\n");
+                        if(indexA!=-1&&indexN!=-1&&indexA<indexN){
+                            appendString=false;
+                            for(ArrayList arrayList :HexString.getFlexFromString(flex_string)){
+                                arrayList=getFilterData(arrayList);
+                                if(validateState==1){
+                                    for(int i=0;i<5;i++){
+                                        arrayListsFlexValidate.get(i).add((Double) arrayList.get(i));
+                                    }
+                                }
+                                if(validateState==2){
+                                    performValidation();
+                                    validateState=3;
+                                    lineChart.clear();
+                                    initializeChart(true);
+                                }
+                                if(validateState==3){
+                                    //todo 进行数据转化
+                                    arrayList=performBendCalc(arrayList);
+                                }
+                                flexData=new FlexData(arrayList,new Date());
+                                flexWindow.addFlexData(flexData);
+                                addEntry(arrayList);
+                                Log.i(TAG,"大小为:"+flexData.getStringFlexData().length()+"蓝牙读取的数据字符串："+flexData.getStringFlexData());
+                                receiveMessage.setText(flexData.getStringFlexData());
+                            }
+                        }else{
+                            appendString=true;
+                        }
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                     break;
                 case MESSAGE_DEVICE_NAME:
                     // 保存已连接设备的名称
@@ -445,6 +493,18 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
             }
         }
     };
+    /**
+     * @function: 实现电压数值到弯曲数值之间的转化
+     * @param arrayList : 一条弯曲传感器的记录，flex1，flex2，flex3，。。。，flex5
+     * @return： 返回转化后的弯曲度
+     * */
+    public ArrayList<Double> performBendCalc(ArrayList<Double> arrayList){
+        ArrayList<Double>arrayList1=new ArrayList<>();
+        for(int i=0;i<arrayList.size();i++){
+            arrayList1.add(PolynomialCurveHandle.inverseFunction(flexparam[i*3],flexparam[i*3+1],flexparam[i*3+2],arrayList.get(i)));
+        }
+        return arrayList1;
+    }
     /**
      * @function: 搜索附件蓝牙设备，通过回调在 onStart（）继续处理。
      * */
@@ -470,7 +530,7 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
     /**
      * @function: 初始化chart相关设置和监听函数
      * */
-    public void initializeChart(){
+    public void initializeChart(Boolean validation){
         lineChart.setOnChartValueSelectedListener(this);
         lineChart.getDescription().setEnabled(true);
         lineChart.setTouchEnabled(true);
@@ -506,61 +566,67 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         YAxis leftAxis = lineChart.getAxisLeft();
         //leftAxis.setTypeface(tfLight);
         leftAxis.setTextColor(Color.WHITE);
-        leftAxis.setAxisMaximum(180f);
-        leftAxis.setAxisMinimum(0f);
+        if(validation){
+            leftAxis.setAxisMaximum(180f);
+            leftAxis.setAxisMinimum(0f);
+        }
         leftAxis.setDrawGridLines(true);
-
-        YAxis rightAxis = lineChart.getAxisRight();
+    YAxis rightAxis = lineChart.getAxisRight();
         rightAxis.setEnabled(false);
-    }
-    
+}
+
     /**
      * @function: 添加模拟数据集,测试函数绘制功能
      * */
     private void addEntry() {
 
         LineData data = lineChart.getData();
-        Log.i(TAG,"addEntry:"+data.getDataSetCount());
         if (data != null&&data.getDataSetCount()==5) {
 
             for(int i=0;i<5;i++){
                 ILineDataSet set = data.getDataSetByIndex(i);
                 data.addEntry(new Entry(set.getEntryCount(), (float) (Math.random() * 30) + 30f*i), i);
             }
-            /*ILineDataSet set = data.getDataSetByIndex(0);
-            // set.addEntry(...); // can be called as well
-
-            if (set == null) {
-                set = createSet("Flex1",ColorTemplate.getHoloBlue());
-                data.addDataSet(set);
-            }
-
-            data.addEntry(new Entry(set.getEntryCount(), (float) (Math.random() * 40) + 30f), 0);*/
             data.notifyDataChanged();
-
             // let the lineChart know it's data has changed
             lineChart.notifyDataSetChanged();
-
             // limit the number of visible entries
             lineChart.setVisibleXRangeMaximum(120);
-            // lineChart.setVisibleYRange(30, AxisDependency.LEFT);
-
+            // lineChart.setVisibleYRange(30, AxisDependency.LEFT)
             // move to the latest entry
             lineChart.moveViewToX(data.getEntryCount());
-
             // this automatically refreshes the lineChart (calls invalidate())
             // lineChart.moveViewTo(data.getXValCount()-7, 55f,
             // AxisDependency.LEFT);
         }
     }
-
+    /**
+     * @function: 添加传感器数据,用于绘制
+     * @param arrayList :五个传感器数值，分别 1，2，3，4，5
+     * */
     private void addEntry(ArrayList<Double>arrayList){
         LineData data = lineChart.getData();
-        Log.i(TAG,"addEntry:"+data.getDataSetCount());
         if (data != null&&data.getDataSetCount()==5) {
             for(int i=0;i<5;i++){
                 ILineDataSet set = data.getDataSetByIndex(i);
                 data.addEntry(new Entry(set.getEntryCount(), arrayList.get(i).floatValue()), i);
+            }
+            data.notifyDataChanged();
+            lineChart.notifyDataSetChanged();
+            lineChart.setVisibleXRangeMaximum(120);
+            lineChart.moveViewToX(data.getEntryCount());
+        }
+    }
+
+    /**
+     * @function: 清空图表数据
+     * */
+    private void clearEntry(){
+        LineData data = lineChart.getData();
+        if (data != null&&data.getDataSetCount()==5) {
+            for(int i=0;i<5;i++){
+                ILineDataSet set = data.getDataSetByIndex(i);
+                set.clear();
             }
             data.notifyDataChanged();
             lineChart.notifyDataSetChanged();

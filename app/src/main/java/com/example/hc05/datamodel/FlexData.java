@@ -1,18 +1,13 @@
 package com.example.hc05.datamodel;
-
-import android.util.Log;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
 /**
  * @author liudongdong
  * @Date 2021.12.2
  * @function: 一条传感器数据记录基本数据条目
  * */
 public class FlexData {
-
     private ArrayList<Double> flexdata;   //存储弯曲传感器数据值
     private String timestamp;          // 存储对应的时间戳  String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Timestamp());
     public FlexData(){
@@ -56,6 +51,10 @@ public class FlexData {
     public String getTimestamp(){
         return timestamp;
     }
+    /**
+     * @function: 获取弯曲传感器 五个传感器数值
+     * return： string， data;data;
+     * */
     public String getStringFlexData(){
         StringBuilder stringBuilder=new StringBuilder();
         for(Double data: flexdata){
@@ -63,7 +62,6 @@ public class FlexData {
         }
         return stringBuilder.toString();
     }
-
     @Override
     public String toString() {
         return "FlexData{" +

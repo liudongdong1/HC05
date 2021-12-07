@@ -20,10 +20,17 @@ public class RandomFlex {
     public static RandomFlex getSingleton(){
         return RandomFlex.Inner.instance;
     }
-
+    /**
+     * @function: 模拟flex传感器数据
+     * @return： type-> FlexData
+     * */
     public FlexData getFlexData(){
         return new FlexData(getFlexFakeData(),new Date());
     }
+    /**
+     * @function: 模拟flex传感器数据
+     * @return： type-> ArrayList<Double>
+     * */
     public ArrayList<Double> getFlexFakeData(){
         ArrayList<Double>temp=new ArrayList<Double>();
         for(int i=0;i<5;i++){

@@ -1,4 +1,7 @@
 package com.example.hc05.tools;
+
+import java.util.ArrayList;
+
 /**
  * @author liudongdong
  * @Date 2021.12.2
@@ -37,6 +40,44 @@ public class HexString {
         }
 
         return data;
+    }
+    /**
+     * @function: 判断是不是有效地flex传感器数据
+     * @param flex_string : 字符串flex数据，例如：A0:403,446,386,358,439
+     * @return: true:有效传感器数据
+     *          false： 无效传感器数据
+     * */
+    public static Boolean isValidFlexData(String flex_string){
+        if(flex_string.contains(",")&&flex_string.contains(":")&&flex_string.startsWith("A")){
+            if(flex_string.split(",").length==5){
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * @function: 从字符传数据中解析弯曲传感器数据
+     * @param flexstring : 字符串flex数据，例如：A0:403,446,386,358,439
+     * @return ArrayList<Double> 返回字符串数据数组
+     * */
+    public static ArrayList<ArrayList<Double>> getFlexFromString(String flexstring){
+        ArrayList<ArrayList<Double>>arrayList=new ArrayList<>();
+        int IndexA=flexstring.indexOf("A");
+        int IndexN=flexstring.lastIndexOf("\n");
+        flexstring=flexstring.substring(IndexA,IndexN);
+        String[] flexStringList=flexstring.split("\n");
+        for(int i=0;i<flexStringList.length;i++){
+            //System.out.println("数据为："+flexStringList[i]);
+            if(isValidFlexData(flexStringList[i])){
+                ArrayList<Double>arrayList1=new ArrayList<>();
+                String[] templist=flexStringList[i].split(":")[1].split(",");
+                for(String temp: templist){
+                    arrayList1.add(Double.valueOf(temp));
+                }
+                arrayList.add(arrayList1);
+            }
+        }
+        return arrayList;
     }
 
     // 将字节数组转化为16进制字符串，确定长度

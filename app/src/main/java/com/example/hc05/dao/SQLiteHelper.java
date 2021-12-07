@@ -14,6 +14,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+/**
+ * @author liudongdong
+ * @Date 2021.12.4
+ * @function: SQLiteHelper 类，实现数据表的创建，版本控制，读写数据库句柄的获取
+ * */
 public class SQLiteHelper extends SQLiteOpenHelper{
     private SQLiteDatabase myDataBase;
     private final Context myContext;
@@ -27,7 +32,6 @@ public class SQLiteHelper extends SQLiteOpenHelper{
         super(context, Constant.DB_NAME, null, 1);
         this.myContext = context;
     }
-
     public void openDataBase()  {
         String dbpath = myContext.getDatabasePath(Constant.DB_NAME).getPath();
         if (myDataBase != null && myDataBase.isOpen())
@@ -36,18 +40,11 @@ public class SQLiteHelper extends SQLiteOpenHelper{
         }
         myDataBase = SQLiteDatabase.openDatabase(dbpath,null,SQLiteDatabase.OPEN_READWRITE);
     }
-
-    public Cursor rawQuery(String sql) {
-        return myDataBase.rawQuery(sql, null);
-    }
     @Override
     public synchronized void close() {
-
         if(myDataBase != null)
             myDataBase.close();
-
         super.close();
-
     }
     /**
      * @function: 创建数据库
@@ -67,7 +64,6 @@ public class SQLiteHelper extends SQLiteOpenHelper{
      * */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
     }
 
     /**

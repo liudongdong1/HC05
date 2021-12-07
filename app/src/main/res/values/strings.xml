@@ -101,4 +101,8 @@
     <string name="Save">Save</string>
     <string name="top5">识别结果Top5：</string>
     <string name="RecieveText">接收数:</string>
+    <string name="startValid">StartValid</string>
+    <string name="Validation">Validation</string>
+    <string name="输入label">输入label</string>
+    <string name="Stop">Stop</string>
 </resources>

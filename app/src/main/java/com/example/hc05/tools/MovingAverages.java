@@ -2,7 +2,9 @@ package com.example.hc05.tools;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-
+/**
+ * @function: 滑动平均处理算法，窗口值为 Constant.AVERAGE_WINDOW_SIZE
+ * */
 public class MovingAverages {
     private Deque<Double> queue;
     private int size;

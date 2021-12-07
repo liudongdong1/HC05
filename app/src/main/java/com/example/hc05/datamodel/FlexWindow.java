@@ -19,7 +19,6 @@ public class FlexWindow {
     //todo  添加视图显示效果
     private String gestureImageURL;  //手势对应图片地址
     private String voiceURL;   //手势对应声音地址
-
     /**
      * @function： 静态内部单例构造模式
      * */
@@ -33,14 +32,12 @@ public class FlexWindow {
     public static FlexWindow getSingleton(){
         return Inner.instance;
     }
-
     /**
      * @function： 添加flexdata数据到显示操作窗口
      * */
     public synchronized void addFlexData(FlexData flexData){
         winFlexData.offer(flexData);
     }
-    //todo 这里需要测试一下这个输出是否正确，顺序是否有问题
     /**
      * @function: 获取 窗口Flexdata数值
      * */
@@ -50,15 +47,12 @@ public class FlexWindow {
         //Collections.reverse(result);
         return result;
     }
-
     public String getGestureName(){
         return gestureName;
     }
-
     public void setGestureName(String gestureName) {
         this.gestureName = gestureName;
     }
-
     public synchronized void clearData(){
         gestureName="None";
         winFlexData.clear();

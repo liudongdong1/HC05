@@ -12,6 +12,11 @@ import com.example.hc05.datamodel.FlexData;
 
 import java.util.ArrayList;
 
+/**
+ * @author liudongdong
+ * @Date 2021.12.4
+ * @function: 数据库增删查改操作封装函数
+ * */
 public class SQLiteOperation {
     private final String Tag="SQLiteOperation";
     private SQLiteHelper sqLiteHelper;
@@ -36,6 +41,9 @@ public class SQLiteOperation {
         contentValues.put("timestamp",flexData.getTimestamp());
         return database.insert("table_flex",null,contentValues)>0?true:false;
     }
+    /**
+     * @function: 使用数据库事务增加多个数据到表中
+     * */
     public void addBatch(ArrayList<FlexData> flexDataArrayList){
         SQLiteDatabase database=sqLiteHelper.getWritableDatabase();
         database.beginTransaction();
@@ -58,16 +66,12 @@ public class SQLiteOperation {
     public ArrayList<FlexData> queryAll(){
         SQLiteDatabase sqLiteDatabase=sqLiteHelper.getReadableDatabase();
         ArrayList<FlexData> flexDataArrayList=new ArrayList<FlexData>();
-        //Log.i(Tag,"queryAll: 操作");
         Cursor cursor=sqLiteDatabase.query("table_flex",new String[]{"flexdata","timestamp"},null,null,null,null,null);
-        //Log.i(Tag,"queryAll: successful,the size="+cursor.getCount());
         while(cursor.moveToNext()){
-            //Log.i(Tag,"queryAll: successful,the size="+cursor.getCount());
             @SuppressLint("Range") FlexData flexData=new FlexData(cursor.getString(cursor.getColumnIndex("flexdata")),cursor.getString(cursor.getColumnIndex("timestamp")));
-            //Log.i(Tag,flexData.toString());
             flexDataArrayList.add(flexData);
         }
-        //Log.i(Tag,"queryAll: 操作成功，获取数据大小="+flexDataArrayList.size());
+        Log.i(Tag,"queryAll: 操作成功，获取数据大小="+flexDataArrayList.size());
         return flexDataArrayList;
     }
     /**
