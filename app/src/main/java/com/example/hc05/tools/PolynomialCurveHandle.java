@@ -1,7 +1,10 @@
 package com.example.hc05.tools;
 
+import android.util.Log;
+
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
+import org.jfree.data.general.DatasetUtilities;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,33 +18,43 @@ public class PolynomialCurveHandle {
     public static double[] getParameters(ArrayList<Double>arrayList){
         arrayList=getSortedFlex(arrayList);
         WeightedObservedPoints points = new WeightedObservedPoints();
-        Double dist=108.0/arrayList.size();
-        String strtemp="";
+        Double dist=180.0/arrayList.size();
+
+        /*String strtemp="";
+        for(Double temp: arrayList){
+            strtemp=strtemp+"\t"+temp;
+        }*/
+        //Log.i("PolynomialCurHandle","after:"+strtemp);
+
         for(int i=0;i<arrayList.size();i++){
             points.add(180-i*dist,arrayList.get(i));
-            strtemp=strtemp+"\t"+arrayList.get(i);
         }
-        System.out.println(strtemp);
         PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);  //指定多项式阶数
         double[] result = fitter.fit(points.toList());  // 曲线拟合，结果保存于数组
+        //Log.i("PolynomialCurHandle",""+result[0]+":"+result[1]+":"+result[2]);
         return result;
     }
-
+    public static void logString(ArrayList<Double>arrayList){
+        String strtemp="";
+        for(Double temp: arrayList){
+            strtemp=strtemp+"\t"+temp;
+        }
+        Log.i("PolynomialCurHandle",strtemp);
+    }
     public static ArrayList<Double>getSortedFlex(ArrayList<Double>arrayList){
-        //Double max=
         Collections.sort(arrayList);// 升序排列
-        //降序排序
-        // Collections.sort(this.arrayList, Collections.reverseOrder());
+        logString(arrayList);
         ArrayList<Double>distinct=new ArrayList<Double>();
-        for(int i=0;i<arrayList.size();i++){
-            if(distinct.size()<1){
-                distinct.add(arrayList.get(i));
+
+        distinct.add(arrayList.get(0));
+        for(int i=1;i<arrayList.size();i++){
+            if(Math.abs(arrayList.get(i)-arrayList.get(0))<6){
                 continue;
-            }else{
-                if(arrayList.get(i)-distinct.get(distinct.size()-1)>Constant.Distinct_VALUE){
-                    distinct.add(arrayList.get(i));
-                }
             }
+            if(Math.abs(arrayList.get(i)-arrayList.get(arrayList.size()-1))<6){
+                continue;
+            }
+            distinct.add(arrayList.get(i));
         }
         return distinct;
     }
@@ -56,11 +69,11 @@ public class PolynomialCurveHandle {
         delta = b*b-4*a*c;
         x1=(-b+Math.sqrt(delta))/(2*a);
         x2=(-b-Math.sqrt(delta))/(2*a);
+        //Log.i("PolynomialCurHandle","x1="+x1+";X2="+x2);
         if (Math.abs(x1)<=Math.abs(x2))
         {
             results = x1;
-        }
-        else{
+        }else{
             results = x2;
         }
         if(results>180){

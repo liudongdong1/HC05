@@ -343,9 +343,9 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         receiveMessage.setText(null);
         recognizeResult.setText("None");
         flexWindow.clearData();
-        //lineChart.getLineData().clearValues();
+        lineChart.getLineData().clearValues();
         //clearEntry();
-        lineChart.clear();
+        //lineChart.clear();
         initializeChart(false);
         validateState=0;
     }

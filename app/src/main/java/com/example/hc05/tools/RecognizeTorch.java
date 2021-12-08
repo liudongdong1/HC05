@@ -34,7 +34,11 @@ public class RecognizeTorch {
         return RecognizeTorch.Inner.instance;
     }
     public Boolean initializeModel(Context context) throws IOException {
-        module = LiteModuleLoader.load(assetFilePath(context, Constant.MODEL_PATH));
+        if(Constant.TYPE=="D"){
+            module = LiteModuleLoader.load(assetFilePath(context, Constant.MODEL_PATH_DIGIT));
+        }else{
+            module = LiteModuleLoader.load(assetFilePath(context, Constant.MODEL_PATH_CHAR));
+        }
         if(module!=null){
             return true;
         }
@@ -60,7 +64,7 @@ public class RecognizeTorch {
             data[i]=inputList.get(i).floatValue();
         }
         Tensor input_tensor= Tensor.fromBlob(data,shape);
-        System.out.println(input_tensor.toString());
+        //System.out.println(input_tensor.toString());
         return getRecognizeReuslt(input_tensor);
     }
     /**
@@ -86,7 +90,11 @@ public class RecognizeTorch {
         Index = ArrayHelper.Arraysort(scores);
         StringBuilder stringBuilder=new StringBuilder();
         for (int i = 0; i < 5; i++) {
-            stringBuilder.append(Constant.Gesture_CHAR_CLASSES[Index[i]] + "：" + String.format("%.2f", scores[i]).toString()+";");
+            if(Constant.TYPE=="D"){
+                stringBuilder.append(Constant.Gesture_DIGIT_CLASSES[Index[i]] + "：" + String.format("%.2f", scores[i]).toString()+";");
+            }else{
+                stringBuilder.append(Constant.Gesture_CHAR_CLASSES[Index[i]] + "：" + String.format("%.2f", scores[i]).toString()+";");
+            }
         }
         //String classname = Constant.Gesture_CHAR_CLASSES[Index[0]];
         return stringBuilder.toString();
