@@ -2,6 +2,7 @@ package com.example.hc05.tools;
 
 
 import android.content.Context;
+import android.util.Log;
 
 
 import com.example.hc05.datamodel.FlexData;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
  * @function: 通过Pytorch mobile 模型识别手势行为
  * */
 public class RecognizeTorch {
+    private String Tag="RecognizeTorch";
     private Module module=null;
     private RecognizeTorch(){
     }
@@ -33,6 +35,7 @@ public class RecognizeTorch {
     public static RecognizeTorch getSingleton(){
         return RecognizeTorch.Inner.instance;
     }
+
     public Boolean initializeModel(Context context) throws IOException {
         if(Constant.TYPE=="D"){
             module = LiteModuleLoader.load(assetFilePath(context, Constant.MODEL_PATH_DIGIT));
@@ -45,12 +48,23 @@ public class RecognizeTorch {
         return false;
     }
     public String getRecognizeResult(FlexWindow flexWindow){
+        // 开始时间
+        long stime = System.currentTimeMillis();
+
         float[] data=new float[5*5];
         ArrayList<Float> inputList=new ArrayList<>();
         ArrayList<Double> arrayList=new ArrayList<Double>();
         for(Double value :flexWindow.getSingleFlexData((int)(flexWindow.getSize()/6*4)).getFlexData()){
             arrayList.add(value);
         }
+        String result=getRecognizeResult(arrayList);
+        long etime = System.currentTimeMillis();
+        Log.i(Tag,String.format("时间--执行时长：%d 毫秒.",etime - stime));
+        return result;
+    }
+    public String getRecognizeResult(ArrayList<Double> arrayList){
+        float[] data=new float[5*5];
+        ArrayList<Float> inputList=new ArrayList<>();
         for(int i=0;i<arrayList.size();i++){
             inputList.add(arrayList.get(i).floatValue());
             for(int j=0;j<arrayList.size();j++){
