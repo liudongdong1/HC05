@@ -3,7 +3,9 @@ package com.example.hc05.activitytest;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
+import android.database.Cursor;
 import android.os.Handler;
 import android.os.Message;
 import android.text.method.ScrollingMovementMethod;
@@ -29,6 +31,7 @@ import com.example.hc05.DeviceListActivity;
 import com.example.hc05.R;
 import com.example.hc05.bluetooth.BluetoothChatService;
 import com.example.hc05.dao.SQLiteOperation;
+import com.example.hc05.dao.SQLiteRecgOp;
 import com.example.hc05.datamodel.FlexData;
 import com.example.hc05.datamodel.FlexWindow;
 import com.example.hc05.tools.HexString;
@@ -47,6 +50,8 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
+
+import org.apache.commons.math3.optim.InitialGuess;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -116,6 +121,8 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
 
     
     private SQLiteOperation sqLiteOperation=SQLiteOperation.getSingleton();
+    private SQLiteRecgOp sqLiteRecgOp=SQLiteRecgOp.getSingleton();
+
     /**
      * @function： 初始化五个滑动平均类，用于平滑弯曲传感器数据
      * */
@@ -151,7 +158,51 @@ public class sqlitetest extends Activity implements OnChartValueSelectedListener
         }
         initializeFilter();
         sqLiteOperation.initSQLiteHepler(this);
+        sqLiteRecgOp.initSQLiteHepler(this);
+        performRecognizeAll();
     }
+
+
+    /**
+     * * @funtion: 通过New Thread 方式开辟一个新的线程，用于处理保存窗口数据到sqlite数据库中
+     * */
+    private void performRecognizeAll(){
+        new Thread(new Runnable() {
+            @SuppressLint("Range")
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void run() {
+                ArrayList<String>labels=new ArrayList<>();
+                ArrayList<String>results=new ArrayList<>();
+                Cursor cursor=sqLiteOperation.queryAllCursor("LDD_C_%");
+                if(cursor.getCount()>25000){
+                    return;
+                }
+                Integer i=0;
+                String flexdata=null;
+                while(cursor.moveToNext()){
+                    labels.add(cursor.getString(cursor.getColumnIndex("label")));
+                    flexdata=cursor.getString(cursor.getColumnIndex("flexdata"));
+
+                    results.add(recognizeTorch.getRecognizeResultAll(flexdata));
+                    i=i+1;
+                    if(i>180){
+                        i=0;
+                        Log.i(TAG,"addBatch:"+results.size());
+                        sqLiteRecgOp.addBatch(results,labels);
+                        results.clear();
+                        labels.clear();
+                        labels=new ArrayList<>();
+                        results=new ArrayList<>();
+                    }
+                }
+                Log.i(TAG,"addBatch:"+results.size());
+                sqLiteRecgOp.addBatch(results,labels);
+            }
+        }).start();
+    }
+
+
     /**
      * @function:如果BT未打开，请求启用。  mChatService 是否可用操作
      * */

@@ -1,6 +1,7 @@
 package com.example.hc05;
 
 import com.example.hc05.datamodel.FlexData;
+import com.example.hc05.tools.Constant;
 import com.example.hc05.tools.RandomFlex;
 
 import org.junit.Test;
@@ -244,6 +245,21 @@ public class SQLDB {
             System.out.println("查询数据时出错！"+e.getMessage());
         }
     }
+    public void createTable(String sql){
+        //String sql="truncate table table_flex";  //sqlite 不支持该操作
+        try {
+            // 获得连接
+            conn = this.getConnection();
+            // 调用SQL
+            pst = conn.prepareStatement(sql);
+            // 执行
+            pst.execute();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            closeAll();
+        }
+    }
     /**
      * @function: 清空表操作
      * */
@@ -304,11 +320,13 @@ public class SQLDB {
         }
         addBatchFlexData(flexDataArrayList);*/
         //deleteFlexTable();
-        deleteFlexTableContain("ten");
+        createTable(Constant.SQL_Result);
+        createTable(Constant.SQL);
+        /*deleteFlexTableContain("ten");
         ArrayList<FlexData>arrayList=executeQueryContain("ten");
         for(FlexData flexData: arrayList){
             System.out.println(flexData.toString());
-        }
+        }*/
     }
     public ArrayList<FlexData> getFlexFromTXT(String filename,String description) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -350,7 +368,7 @@ public class SQLDB {
                 if(type=="D"){
                     description=String.format("LDD_D_%s_%s",temp[temp.length-2],temp[temp.length-1].split("\\.")[0]);
                 }else{
-                    description=String.format("LDD_D_%s_%d",temp[temp.length-2],i);
+                    description=String.format("LDD_C_%s_%d",temp[temp.length-2],i);
                     i=i+1;
                 }
                 System.out.println(description);
@@ -366,6 +384,7 @@ public class SQLDB {
         //String filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\digit\\digitFlex_7days";
         //ListAll(new File(filename));
         String filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\digit\\digitFlex_7days";
+        saveToSQL(filename,"D");
         filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\chars\\charFlex\\26char";
         saveToSQL(filename,"C");
     }

@@ -76,6 +76,14 @@ public class SQLiteOperation {
         Log.i(Tag,"queryAll: 操作成功，获取数据大小="+flexDataArrayList.size());
         return flexDataArrayList;
     }
+    public Cursor queryAllCursor(String arg){
+        SQLiteDatabase sqLiteDatabase=sqLiteHelper.getReadableDatabase();
+        Cursor cursor=sqLiteDatabase.query("table_flex",new String[]{"label","flexdata"},null,null,null,null,null);
+        Log.i(Tag,"queryAllCursor,全部查询个数为："+cursor.getCount());
+        cursor=sqLiteDatabase.query("table_flex",new String[]{"label","flexdata"},"label like ?",new String[]{arg},null,null,null);
+        Log.i(Tag,"queryAllCursor,查询个数为："+cursor.getCount());
+        return cursor;
+    }
     /**
      * @function: 删除表操作
      * */

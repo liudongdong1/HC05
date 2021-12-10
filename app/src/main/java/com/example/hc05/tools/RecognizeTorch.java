@@ -62,6 +62,13 @@ public class RecognizeTorch {
         Log.i(Tag,String.format("时间--执行时长：%d 毫秒.",etime - stime));
         return result;
     }
+    public String getRecognizeResultAll(String flexdata){
+        ArrayList<Double>arrayList=new ArrayList<>();
+        for(String temp:flexdata.split(";")){
+            arrayList.add(Double.valueOf(temp));
+        }
+        return getRecognizeResult(arrayList);
+    }
     public String getRecognizeResult(ArrayList<Double> arrayList){
         float[] data=new float[5*5];
         ArrayList<Float> inputList=new ArrayList<>();
@@ -103,9 +110,9 @@ public class RecognizeTorch {
         int[] Index = new int[scores.length];
         Index = ArrayHelper.Arraysort(scores);
         StringBuilder stringBuilder=new StringBuilder();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < Index.length; i++) {
             if(Constant.TYPE=="D"){
-                stringBuilder.append(Constant.Gesture_DIGIT_CLASSES[Index[i]] + "：" + String.format("%.2f", scores[i]).toString()+";");
+                stringBuilder.append(Constant.Gesture_DIGIT_CLASSES[Index[i]] + ":" + String.format("%.2f", scores[i]).toString()+";");
             }else{
                 stringBuilder.append(Constant.Gesture_CHAR_CLASSES[Index[i]] + "：" + String.format("%.2f", scores[i]).toString()+";");
             }
