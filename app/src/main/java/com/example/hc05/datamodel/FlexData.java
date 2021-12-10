@@ -40,6 +40,15 @@ public class FlexData {
         }
         label=description;
     }
+    public FlexData(String flexstring,Date date,String description){
+        flexdata=new ArrayList<Double>();
+        timestamp=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(date.getTime());
+        String[] list=flexstring.split(";");
+        for(String temp: list){
+            flexdata.add(Double.valueOf(temp));
+        }
+        label=description;
+    }
 
     public String getLabel() {
         return label;

@@ -5,6 +5,11 @@ import com.example.hc05.tools.RandomFlex;
 
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -141,6 +146,7 @@ public class SQLDB {
             return arrayList;
         }
     }
+
     /**
      * SQL 模糊查询，label 数据包含Label
      * @param Label : 关键词
@@ -238,6 +244,53 @@ public class SQLDB {
             System.out.println("查询数据时出错！"+e.getMessage());
         }
     }
+    /**
+     * @function: 清空表操作
+     * */
+    public int deleteFlexTableContain(String label){
+        String sql="delete from table_flex where label like ?";   //没有* 号
+        //String sql="truncate table table_flex";  //sqlite 不支持该操作
+        try {
+            // 获得连接
+            conn = this.getConnection();
+            // 调用SQL
+            pst = conn.prepareStatement(sql);
+
+            //System.out.println("select * from table_flex where label like '%?%' ");
+            pst.setString(1,"%"+label+"%");
+            //System.out.println("2select * from table_flex where label like '%?%' ");
+
+            System.out.println(pst.getParameterMetaData());
+
+            // 执行
+            return pst.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            closeAll();
+            return 0;
+        }
+    }
+    /**
+     * @function: 清空表操作
+     * */
+    public int deleteFlexTable(){
+        String sql="delete from table_flex";   //没有* 号
+        //String sql="truncate table table_flex";  //sqlite 不支持该操作
+        try {
+            // 获得连接
+            conn = this.getConnection();
+            // 调用SQL
+            pst = conn.prepareStatement(sql);
+            // 执行
+            return pst.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            closeAll();
+            return 0;
+        }
+    }
     //定义一个main方法
     @Test
     public void test_connection(){
@@ -250,7 +303,89 @@ public class SQLDB {
             flexDataArrayList.add(flexData);
         }
         addBatchFlexData(flexDataArrayList);*/
-        ArrayList<FlexData>arrayList=executeQueryContain("te");
+        //deleteFlexTable();
+        deleteFlexTableContain("ten");
+        ArrayList<FlexData>arrayList=executeQueryContain("ten");
+        for(FlexData flexData: arrayList){
+            System.out.println(flexData.toString());
+        }
+    }
+    public ArrayList<FlexData> getFlexFromTXT(String filename,String description) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(filename));
+        String line;
+        ArrayList<FlexData>arrayList=new ArrayList<FlexData>();
+        while((line = br.readLine())!=null) {
+            if(line.split(",").length==5){
+                line=line.replace(",",";");
+                //System.out.println(line);
+                arrayList.add(new FlexData(line,new Date(),description));
+            }
+
+        }
+        return arrayList;
+    }
+    private void ListAll(File dir) {
+        //获取指定目录下当前的所有文件或文件夹对像
+        File[] files = dir.listFiles();
+        for (File file : files){
+            System.out.println(file.getAbsolutePath());
+            if (file.isDirectory()){
+                ListAll(file);
+            } else {
+                System.out.println(file.getAbsolutePath());
+            }
+        }
+    }
+    public void saveToSQL(String filepath,String type) throws IOException {
+        File basefolder=new File(filepath);
+        File[] files=basefolder.listFiles();
+        for(File file1:files){
+            String label=file1.getAbsolutePath();
+            int i=0;
+            for(File file: new File(label).listFiles()){
+                String filename=file.getAbsolutePath();
+                ArrayList<FlexData>arrayList=new ArrayList<FlexData>();
+                String[] temp=filename.split("\\\\");
+                String description="NULL";
+                if(type=="D"){
+                    description=String.format("LDD_D_%s_%s",temp[temp.length-2],temp[temp.length-1].split("\\.")[0]);
+                }else{
+                    description=String.format("LDD_D_%s_%d",temp[temp.length-2],i);
+                    i=i+1;
+                }
+                System.out.println(description);
+                arrayList=getFlexFromTXT(filename,description);
+                System.out.println("读取文件"+description+" 大小=："+arrayList.size()+"文件名："+filename);
+                addBatchFlexData(arrayList);
+                arrayList.clear();
+            }
+        }
+    }
+    @Test
+    public void test_listdir() throws IOException {
+        //String filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\digit\\digitFlex_7days";
+        //ListAll(new File(filename));
+        String filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\digit\\digitFlex_7days";
+        filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\chars\\charFlex\\26char";
+        saveToSQL(filename,"C");
+    }
+    @Test
+    public void test_txtDataRead() throws IOException {
+        //selectAll();
+        /*RandomFlex randomFlex=RandomFlex.getSingleton();
+        ArrayList<FlexData>flexDataArrayList=new ArrayList<>();
+        for(int i=0;i<110;i++){
+            FlexData flexData=new FlexData(randomFlex.getFlexFakeData(),new Date(),"LD_D_1");
+            System.out.println("flexWindow_test"+i+"\t"+flexData.toString());
+            flexDataArrayList.add(flexData);
+        }*/
+
+        ArrayList<FlexData>flexDataArrayList=new ArrayList<>();
+        String filename="D:\\work_OneNote\\OneDrive - tju.edu.cn\\文档\\work_组会比赛\\数据手套\\DashBoard\\flexdata\\digit\\digitFlex_7days\\eight\\1.txt";
+        flexDataArrayList=getFlexFromTXT(filename,"LDD_D_1_1");
+
+        addBatchFlexData(flexDataArrayList);
+        ArrayList<FlexData>arrayList=executeQueryContain("D_1");
         for(FlexData flexData: arrayList){
             System.out.println(flexData.toString());
         }
